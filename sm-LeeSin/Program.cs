@@ -39,6 +39,10 @@ namespace sm_LeeSin
             Game.PrintChat("L e e S i n !");
             setMenu();
             setVars();
+            Game.OnGameUpdate += onUpdateGame;
+            Drawing.OnDraw += Drawing_OnDraw;
+
+            //Drawing.DrawText
         }
         public static void setVars()
         {
@@ -69,6 +73,59 @@ namespace sm_LeeSin
             Config.AddSubMenu(targetSelectorMenu);
             Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalking"));
             Config.AddToMainMenu();
+        }
+
+        public static void onUpdateGame(EventArgs args)
+        {
+            if (Player.IsDead) return;
+            smartShotQ();
+            readyInsec();
+        }
+        private static void smartShotQ()
+        {
+            if (Config.Item("ShotQ").GetValue<KeyBind>().Active)
+            {
+                if (Q.IsReady() && Q.InRange(Player.Position) && Qdata.Name == "BlindMonkQOne")
+                {
+                    Target = SimpleTs.GetTarget(Q.Range, SimpleTs.DamageType.Physical);
+                    PredictionOutput predict = Q.GetPrediction(Target);
+                    if (Target != null && predict.Hitchance > HitChance.Low)
+                    {
+                        Q.Cast(predict.CastPosition);
+                        return;
+                    }
+                }
+            }
+        }
+        private static void readyInsec()
+        {
+            if (Config.Item("SmartInsec").GetValue<KeyBind>().Active)
+            {
+                if (Qdata.Name == "blindmonkqtwo" && Target != null && Target.IsEnemy)
+                {
+                   
+                    if( W.IsReady() && R.IsReady() )
+                    {
+
+                    }
+                    Game.PrintChat("insec");
+                    Q.Cast();
+                }
+            }
+        }
+
+        private static void Drawing_OnDraw(EventArgs args)
+        {
+            if (Player.IsDead) return;
+            drawReady();
+        }
+
+        private static void drawReady()
+        {
+            if (Qdata.Name == "blindmonkqtwo" && Target != null && Target.IsEnemy)
+            {
+                Drawing.DrawText(Player.HPBarPosition.X, Player.HPBarPosition.Y - 40, System.Drawing.Color.FromArgb(255, 0, 0), "ready to insec");
+            }
         }
     }
 }
